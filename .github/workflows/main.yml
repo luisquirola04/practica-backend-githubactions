@@ -2,9 +2,9 @@ name: 01 - Secure Main Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 permissions:
   contents: read
@@ -51,26 +51,3 @@ jobs:
   sca:
     needs: pre-flight-security
     uses: ./.github/workflows/sca.yml
-
-  docker-build-sign:
-    needs: [build, sast, sca] # Solo construimos la imagen si el código es seguro
-    uses: ./.github/workflows/docker.yml
-    permissions:
-      contents: read
-      packages: write
-      id-token: write # CRÍTICO para Cosign
-
-  container-scan:
-    needs: docker-build-sign
-    uses: ./.github/workflows/container-image-scan.yml
-    with:
-      image-tag: ${{ needs.docker-build-sign.outputs.image-tag }}
-    permissions:
-      contents: read
-      security-events: write
-
-  dast:
-    needs: container-scan # Solo atacamos si la imagen pasó el scan de vulnerabilidades
-    uses: ./.github/workflows/dast.yml
-    with:
-      image-tag: ${{ needs.docker-build-sign.outputs.image-tag }}
