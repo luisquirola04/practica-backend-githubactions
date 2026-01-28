@@ -1,0 +1,25 @@
+name: 00 - Security Pre-flight
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read   # 👈 OBLIGATORIO para checkout
+
+jobs:
+  secret-scanning:
+    name: Detect Hardcoded Secrets (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks scan
+        uses: FathAllaTechOps/gitleaks-action@v1.2.0
+        with:
+          source: .
+          fail-on-error: true
