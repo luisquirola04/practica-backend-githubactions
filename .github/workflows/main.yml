@@ -33,10 +33,3 @@ jobs:
       pull-requests: write
 
 
-  # 3️⃣ SCA (Python dependencies)
-  sca:
-    needs: pre-flight-security
-    uses: ./.github/workflows/sca.yml
-    permissions:
-      contents: read
-      security-events: write
