@@ -16,15 +16,17 @@ permissions:
   packages: write
   id-token: write
 
-
 jobs:
-  # 1. Seguridad Primero: Si hay secretos, no seguimos.
+  # 1️⃣ Pre-flight: secretos, formato, validaciones rápidas
   pre-flight-security:
+    name: Pre-flight Security
     uses: ./.github/workflows/00-security-preflight.yml
     permissions:
       contents: read
 
+  # 2️⃣ Build de la app (sin tests)
   build:
+    name: Build
     needs: pre-flight-security
     uses: ./.github/workflows/build.yml
     permissions:
@@ -32,4 +34,29 @@ jobs:
       checks: write
       pull-requests: write
 
+  # 3️⃣ SCA: dependencias y vulnerabilidades
+  dependency-scan:
+    name: Dependency Scan (SCA)
+    needs: build
+    uses: ./.github/workflows/dependabot.yml
+    permissions:
+      contents: read
+      security-events: write
 
+  # 4️⃣ Licencias
+  license-compliance:
+    name: License Compliance
+    needs: dependency-scan
+    uses: ./.github/workflows/license-compliance.yml
+    permissions:
+      contents: read
+      security-events: write
+
+  # 5️⃣ DAST ligero (baseline, NO full scan)
+  dast:
+    name: DAST Baseline
+    needs: build
+    uses: ./.github/workflows/dast.yml
+    permissions:
+      contents: read
+      security-events: write
