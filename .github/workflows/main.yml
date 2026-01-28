@@ -32,21 +32,6 @@ jobs:
       checks: write
       pull-requests: write
 
-  # SAST y SCA pueden correr en paralelo al build para ahorrar tiempo
-  security-static-analysis:
-    needs: pre-flight-security
-    runs-on: ubuntu-latest
-    steps:
-      - name: Placeholder for parallel SAST trigger
-        run: echo "Triggering SAST & SCA parallel execution"
-
-  sast:
-    needs: pre-flight-security
-    uses: ./.github/workflows/sast.yml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
 
   sca:
     needs: pre-flight-security
