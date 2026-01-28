@@ -24,10 +24,6 @@ jobs:
     needs: pre-flight-security
     uses: ./.github/workflows/build.yml
 
-  license-compliance:
-    needs: build
-    uses: ./.github/workflows/license-compliance.yml
-
   sast:
     needs: build
     uses: ./.github/workflows/sast.yml

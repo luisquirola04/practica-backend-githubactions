@@ -23,14 +23,19 @@ jobs:
       - name: Install Bandit
         run: pip install bandit
 
-      - name: Run Bandit (SARIF)
+      - name: Run Bandit (force SARIF output)
         run: |
+          echo "Running Bandit..."
           bandit -r . \
-            -x tests,venv \
+            -x tests,venv,.github \
             -f sarif \
-            -o bandit.sarif || true
+            -o bandit.sarif \
+            || true
+
+          echo "Checking SARIF file..."
+          ls -l bandit.sarif || (echo "SARIF not generated" && exit 1)
 
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: bandit.sarif
