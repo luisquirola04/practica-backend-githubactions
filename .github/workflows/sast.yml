@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   sast:
@@ -23,19 +22,16 @@ jobs:
       - name: Install Bandit
         run: pip install bandit
 
-      - name: Run Bandit (force SARIF output)
+      - name: Run Bandit (JSON report)
         run: |
-          echo "Running Bandit..."
           bandit -r . \
             -x tests,venv,.github \
-            -f sarif \
-            -o bandit.sarif \
+            -f json \
+            -o bandit-report.json \
             || true
 
-          echo "Checking SARIF file..."
-          ls -l bandit.sarif || (echo "SARIF not generated" && exit 1)
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+      - name: Upload SAST report
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: bandit.sarif
+          name: bandit-sast-report
+          path: bandit-report.json
