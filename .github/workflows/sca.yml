@@ -1,4 +1,4 @@
-name: 03 SCA
+name: 03 - SCA (Python Flask)
 
 on:
   workflow_dispatch:
@@ -6,28 +6,31 @@ on:
 
 jobs:
   sca:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ "ubuntu-20.04" ] # [ "macos-latest", "windows-latest", "ubuntu-20.04" ]
-        # Test once with explicit manifest_file, and once without
-        manifest_file: [ "pom.xml" ]
-    runs-on: ${{ matrix.os }}
+    name: SCA Python project
+    runs-on: ubuntu-20.04
+
     defaults:
       run:
         shell: bash
-    name: SCA Java project
+
     steps:
-      - name: Checkout action
-        uses: actions/checkout@v3
+      # 1️⃣ Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v2
+      # 2️⃣ Setup Python (requerido para CRDA + pip)
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          distribution: temurin
-          java-version: 11
-          cache: maven
+          python-version: '3.11'
 
+      # 3️⃣ Install dependencies (lock virtual env)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4️⃣ Install CRDA (Red Hat Dependency Analytics)
       - name: Install SCA tool (CRDA)
         uses: redhat-actions/openshift-tools-installer@v1
         with:
@@ -35,16 +38,28 @@ jobs:
           github_pat: ${{ github.token }}
           crda: "latest"
 
+      # 5️⃣ Run SCA scan (Python / pip)
+      - name: Run SCA scan
+        id: scan
+        run: |
+          crda analyze \
+            --manifest requirements.txt \
+            --json-output crda-report.json \
+            --sarif-output crda-report.sarif
+
+      # 6️⃣ Print JSON report
       - name: Print JSON analysis report
-        if: ${{ always() && steps.scan.outputs.crda_report_json }}
-        run: cat ${{ steps.scan.outputs.crda_report_json }}
+        if: always()
+        run: cat crda-report.json
 
+      # 7️⃣ Print SARIF report
       - name: Print SARIF analysis report
-        if: ${{ always() && steps.scan.outputs.crda_report_sarif }}
-        run: cat ${{ steps.scan.outputs.crda_report_sarif }}
+        if: always()
+        run: cat crda-report.sarif
 
-      - name: Print Report Link
-        run: echo ${{ steps.scan.outputs.report_link }}
-
-      - name: Print Artifact Name
-        run: echo ${{ steps.scan.outputs.artifact_name }}
+      # 8️⃣ Upload SARIF to GitHub Security tab
+      - name: Upload SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: crda-report.sarif
