@@ -28,6 +28,6 @@ jobs:
     needs: build
     uses: ./.github/workflows/license-compliance.yml
 
-  dast:
+  sast:
     needs: build
-    uses: ./.github/workflows/dast.yml
+    uses: ./.github/workflows/sast.yml
