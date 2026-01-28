@@ -16,14 +16,14 @@ permissions:
   packages: write
   id-token: write
 
-
 jobs:
-  # 1. Seguridad Primero: Si hay secretos, no seguimos.
+  # 1️⃣ Pre-flight security
   pre-flight-security:
     uses: ./.github/workflows/00-security-preflight.yml
     permissions:
       contents: read
 
+  # 2️⃣ Build (Python Flask)
   build:
     needs: pre-flight-security
     uses: ./.github/workflows/build.yml
@@ -32,7 +32,10 @@ jobs:
       checks: write
       pull-requests: write
 
-
+  # 3️⃣ SCA (Python dependencies)
   sca:
     needs: pre-flight-security
     uses: ./.github/workflows/sca.yml
+    permissions:
+      contents: read
+      security-events: write
