@@ -1,8 +1,10 @@
 name: DAST Analysis (ZAP Baseline)
 
+# ESTA SECCIÓN ES OBLIGATORIA
 on:
-  workflow_call: 
-  workflow_dispatch: 
+  workflow_call:  # Permite que el pipeline principal llame a este archivo
+  workflow_dispatch: # (Opcional) Te permite ejecutarlo manualmente desde la pestaña Actions para probar
+
 jobs:
   dast_scan:
     name: OWASP ZAP Baseline Scan
