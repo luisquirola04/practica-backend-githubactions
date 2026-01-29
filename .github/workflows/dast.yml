@@ -1,11 +1,5 @@
 name: DAST Analysis (ZAP Baseline)
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
 jobs:
   dast_scan:
     name: OWASP ZAP Baseline Scan
