@@ -27,3 +27,8 @@ jobs:
   sast:
     needs: build
     uses: ./.github/workflows/sast.yml
+      
+  dast:
+    needs: build
+    uses: ./.github/workflows/dast.yml
+

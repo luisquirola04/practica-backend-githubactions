@@ -1,0 +1,56 @@
+name: DAST Analysis (ZAP Baseline)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  dast_scan:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Start Flask App
+        run: |
+          # 'nohup' mantiene el proceso vivo y '&' lo manda al fondo
+          nohup python app.py > flask.log 2>&1 &
+          echo "Iniciando aplicación y esperando 10 segundos..."
+          sleep 10 # Tiempo de espera para asegurar que Flask cargó
+
+      - name: Verify App is Running
+        run: |
+          curl --fail http://127.0.0.1:5000 || (echo "Error: Flask no respondió" && cat flask.log && exit 1)
+
+    
+      - name: Run ZAP Baseline Scan
+        run: |
+          docker run --network host -t owasp/zap2docker-stable zap-baseline.py \
+            -t http://127.0.0.1:5000 \
+            -r zap_report.html \
+            -I \
+            -m 1
+          # Explicación de flags para velocidad:
+          # -I: Ignorar advertencias (no rompe el build si encuentra algo leve)
+          # -m 1: Límite de 1 minuto para el spider (acelera mucho el proceso)
+
+      - name: Upload ZAP Report
+        if: always() 
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZAP-Report
+          path: zap_report.html
