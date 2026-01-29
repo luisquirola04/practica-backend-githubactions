@@ -1,5 +1,8 @@
 name: DAST Analysis (ZAP Baseline)
 
+on:
+  workflow_call: 
+  workflow_dispatch: 
 jobs:
   dast_scan:
     name: OWASP ZAP Baseline Scan
@@ -30,7 +33,6 @@ jobs:
         run: |
           curl --fail http://127.0.0.1:5000 || (echo "Error: Flask no respondió" && cat flask.log && exit 1)
 
-    
       - name: Run ZAP Baseline Scan
         run: |
           docker run --network host -t owasp/zap2docker-stable zap-baseline.py \
@@ -38,9 +40,8 @@ jobs:
             -r zap_report.html \
             -I \
             -m 1
-          # Explicación de flags para velocidad:
-          # -I: Ignorar advertencias (no rompe el build si encuentra algo leve)
-          # -m 1: Límite de 1 minuto para el spider (acelera mucho el proceso)
+          # -I: Ignorar advertencias
+          # -m 1: Límite de 1 minuto (modo rápido)
 
       - name: Upload ZAP Report
         if: always() 
